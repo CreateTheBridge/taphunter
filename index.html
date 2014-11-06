@@ -1,0 +1,114 @@
+<html>
+    <head>
+
+        <link rel="stylesheet" type="text/css" href="simplePagination.css"/>
+        <style type="text/css">
+
+            #template {
+                display: none;
+            }
+
+        </style>
+
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+        <script type="text/javascript" src="jquery.simplePagination.js"></script>
+        <script type="text/javascript">
+            var items           = null;
+            var itemCount       = 0;
+            var itemsPerPage    = 3;
+            var glassImages     = {
+                "tulip"       : "tulip.png",
+                "snifter"     : "snifter.png",
+                "pint"        : "pint.png",
+                "growler"     : "growler.png"
+            };
+
+            var preloadImages = function() {
+                for(var k in glassImages) {
+                    var img = new Image();
+                    img.src = glassImages[k];
+                }
+            };
+
+
+            var setupList = function(pageNumber) {
+                var start = itemsPerPage * (pageNumber - 1);
+                var end =  start + itemsPerPage;
+                end = ((items.length - 1) < end) ? (items.length - 1) : end;
+
+                var paginatedItems = items.slice(start, end);
+
+                $("#beer-list").empty();
+                $.each(paginatedItems, function(i, item) {
+                    var $elem = $("#template").clone();
+
+                    $elem.find(".beer-name").text(item.beer.name);
+                    $elem.find(".beer-company-name").text(item.brewery.name);
+                    $elem.find(".beer-price").text(item.serving_info.price);
+                    $elem.find(".beer-style").text(item.beer.style);
+                    $elem.find(".beer-abv").text(item.beer.abv);
+                    $elem.find(".beer-ibu").text(item.beer.ibu);
+
+                    var size = item.serving_info.size.toLowerCase();
+                    var image = glassImages[size];
+                    $elem.find(".beer-glass-image").attr("src", image);
+
+                    $elem.removeAttr("id");
+
+                    $("#beer-list").append($elem);
+                });
+
+
+            };
+
+            var setupPagination = function(data) {
+                itemCount   = data.length;
+                items       = data;
+
+                setupList(1, data);
+
+                $("#pagination").pagination({
+                    items: itemCount,
+                    itemsOnPage: itemsPerPage,
+                    cssStyle: "light-theme",
+                    onPageClick: function(pageNumber) {
+                        setupList(pageNumber);
+                    }
+                })
+            };
+
+            $(document).ready(function() {
+                preloadImages();
+
+                $.get('tap-hunter.php', function(data) {
+                    console.log(data);
+                    setupPagination(data);
+                });
+            });
+
+        </script>
+    </head>
+
+    <body>
+        <li id="template">
+            <img class="beer-glass-image" />
+            <div class="beer-company-name"></div>
+            <div class="beer-name"></div>
+            <div class="beer-price"></div>
+            <ul>
+                <li class="beer-style"></li>
+                <li class="beer-abv"></li>
+                <li class="beer-ibu"></li>
+            </ul>
+        </li>
+
+        <div id="beer-list-container">
+            <div id="pagination"></div>
+
+            <ul id="beer-list">
+
+            </ul>
+        </div>
+
+    </body>
+</html>
